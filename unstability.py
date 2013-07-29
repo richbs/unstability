@@ -16,6 +16,12 @@ class Unstability:
     rdc = None
 
     def __init__(self):
+        """
+        Checks the environment for the API_KEY and API_SECRET variables
+        If no env variables available, ask the user for their API details
+        Ask the user for their Readability username and password
+        Exchange these credentials for user token and secret via xauth
+        """
         print "Welcome to unstability by @richbs"
         if 'API_KEY' in os.environ:
             k = os.environ['API_KEY']
@@ -34,11 +40,13 @@ class Unstability:
         self.password = p
 
         user_token, user_secret = readability.xauth(k, s, u, p)
-        self.rdc = readability.ReaderClient(k, s,
-                                                  user_token, user_secret)
+        self.rdc = readability.ReaderClient(k, s, user_token, user_secret)
 
     def process_csv(self, csv_filename):
-
+        """
+        Work through the Instapaper CSV and separate into lists per
+        category, e.g. Unread, Archive
+        """
         csv_file = open(csv_filename, 'r')
         self.csv_reader = csv.reader(csv_file)
         for l in self.csv_reader:
@@ -54,6 +62,10 @@ class Unstability:
         self.count_links()
 
     def process_links(self):
+        """
+        Chug through the assembled list of links and add them with the
+        appropriate tag into Readibility.
+        """
         for cat in self.links_by_category:
 
             link_list = self.links_by_category[cat]
@@ -120,10 +132,11 @@ if __name__ == "__main__":
     else:
         exit("Please specify location of Instapaper CSV file.")
 
+    # get all the authentication stuff done
     unst = Unstability()
-
-    # get a token
+    # hack through the CSV
     unst.process_csv(instapaper_csv)
+    # add those links to Readability, one by one
     unst.process_links()
 
     print "Thank you", unst.username
